@@ -109,6 +109,44 @@ app.post('/api/new-department', ({ body }, res) => {
   });
 });
 
+//insert role
+app.post('/api/new-role', ({ body }, res) => {
+  const sql = `INSERT INTO role (title, salary, department_id)
+    VALUES (?, ?, ?)`;
+  const params = [body.title, body.salary, body.department_id];
+  
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: body
+    });
+  });
+});
+
+//insert employee
+app.post('/api/new-employee', ({ body }, res) => {
+  const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+    VALUES (?, ?, ?, ?)`;
+  const params = [body.first_name, body.last_name, body.role_id, body.manager_id];
+  
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: body
+    });
+  });
+});
+
+
+
 ///////////////////////////////////
 
 // Default response for any other request (Not Found)
