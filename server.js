@@ -12,28 +12,63 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// Connect to database
-const db = mysql.createConnection(
-  {
-    host: "localhost",
-    // MySQL username,
-    user: "root",
-    // MySQL password
-    password: "password123",
-    database: "employees_db",
-  },
-  console.log(`Connected to the employees_db database.`)
-);
-
-figlet('Employee tracker', function(err, data) {
+figlet("Employee Tracker", function (err, data) {
   if (err) {
-    console.log('Header not loaded');
+    console.log("Header not loaded");
   } else {
     console.log(data);
-  }  
-})
+  }
+});
 
-////add question prompt here
+//////////////////////////////
+const connection = mysql.createConnection({
+  host: "localhost",
+  // MySQL username,
+  user: "root",
+  // MySQL password
+  password: "password123",
+  database: "employees_db",
+});
+connection
+  .promise()
+  .query("SELECT 1")
+  .then(() => {
+    // console.log(rows);
+    promptChoice();
+  })
+  .catch(console.log)
+  .then(() => connection.end());
+
+//prompt questions
+function promptChoice() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "What would you like to do?",
+        name: "choice",
+        choices: [
+          "View all departments",
+          "View all roles?",
+          "View all employees",
+          "Add a department",
+          "Add a role",
+          "Add an employee",
+          "Update an employee role",
+        ],
+      },
+    ])
+    .then((choice) => {
+      // Use user feedback for... whatever!!
+    })
+    .catch((error) => {
+      if (error.isTtyError) {
+        // Prompt couldn't be rendered in the current environment
+      } else {
+        // Something else went wrong
+      }
+    });
+}
 
 ////// db sql
 // READ
@@ -190,5 +225,5 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  // console.log(`Server running on port ${PORT}`);
 });
