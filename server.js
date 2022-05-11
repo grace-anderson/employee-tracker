@@ -12,15 +12,30 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-figlet("Employee Tracker", function (err, data) {
+// Display heading
+// figlet("Employee Tracker", function (err, data) {
+//   if (err) {
+//     console.log("Header not loaded");
+//   } else {
+//     console.log(data);
+//   }
+// });
+
+figlet.text('Employee Tracker', {
+  font: 'Digital',
+  horizontalLayout: 'default',
+  verticalLayout: 'full',
+  width: 100,
+  whitespaceBreak: true
+}, function(err, data) {
   if (err) {
-    console.log("Header not loaded");
-  } else {
-    console.log(data);
+      console.log('Something went wrong...');
+      console.dir(err);
+      return;
   }
+  console.log(data);
 });
 
-//////////////////////////////
 const connection = mysql.createConnection({
   host: "localhost",
   // MySQL username,
@@ -33,7 +48,6 @@ connection
   .promise()
   .query("SELECT 1")
   .then(() => {
-    // console.log(rows);
     promptChoice();
   })
   .catch(console.log)
@@ -49,7 +63,7 @@ function promptChoice() {
         name: "choice",
         choices: [
           "View all departments",
-          "View all roles?",
+          "View all roles",
           "View all employees",
           "Add a department",
           "Add a role",
@@ -58,8 +72,36 @@ function promptChoice() {
         ],
       },
     ])
-    .then((choice) => {
-      // Use user feedback for... whatever!!
+    //TODO functions in each choice
+    .then((selection) => {
+      switch (selection.choice) {
+        case "View all departments":
+          viewAllDepartments();
+          break;
+
+        case "View All Employee's By Roles?":
+          viewAllRoles();
+          break;
+        case "View all Emplyees By Deparments":
+          viewAllDepartments();
+          break;
+
+        case "Add Employee?":
+          addEmployee();
+          break;
+
+        case "Update Employee":
+          updateEmployee();
+          break;
+
+        case "Add Role?":
+          addRole();
+          break;
+
+        case "Add Department?":
+          addDepartment();
+          break;
+      }
     })
     .catch((error) => {
       if (error.isTtyError) {
