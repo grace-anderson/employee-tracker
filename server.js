@@ -12,29 +12,24 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// Display heading
-// figlet("Employee Tracker", function (err, data) {
-//   if (err) {
-//     console.log("Header not loaded");
-//   } else {
-//     console.log(data);
-//   }
-// });
-
-figlet.text('Employee Tracker', {
-  font: 'Digital',
-  horizontalLayout: 'default',
-  verticalLayout: 'full',
-  width: 100,
-  whitespaceBreak: true
-}, function(err, data) {
-  if (err) {
-      console.log('Something went wrong...');
+figlet.text(
+  "Employee Tracker",
+  {
+    font: "Digital",
+    horizontalLayout: "default",
+    verticalLayout: "full",
+    width: 100,
+    whitespaceBreak: true,
+  },
+  function (err, data) {
+    if (err) {
+      console.log(`Employee Tracker header didn't load`);
       console.dir(err);
       return;
+    }
+    console.log(data);
   }
-  console.log(data);
-});
+);
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -79,27 +74,28 @@ function promptChoice() {
           viewAllDepartments();
           break;
 
-        case "View All Employee's By Roles?":
+        case "View all roles":
           viewAllRoles();
           break;
-        case "View all Emplyees By Deparments":
-          viewAllDepartments();
+
+        case "View all employees":
+          viewAllEmployees();
           break;
 
-        case "Add Employee?":
-          addEmployee();
+        case "Add a department":
+          addDepartment();
           break;
 
-        case "Update Employee":
-          updateEmployee();
-          break;
-
-        case "Add Role?":
+        case "Add a role":
           addRole();
           break;
 
-        case "Add Department?":
-          addDepartment();
+        case "Add an employee":
+          addEmployee();
+          break;
+
+        case "Update an employee role":
+          updateEmployeeRole();
           break;
       }
     })
@@ -112,9 +108,13 @@ function promptChoice() {
     });
 }
 
-////// db sql
 // READ
-// View all departments
+// View all departments 
+
+function viewAllDepartments() {
+
+}
+
 app.get("/api/departments", (req, res) => {
   const sql = `SELECT * FROM department`;
 
