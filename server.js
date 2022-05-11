@@ -25,18 +25,15 @@ const db = mysql.createConnection(
   console.log(`Connected to the employees_db database.`)
 );
 
-connection.connect((err) => {
-  if (err) throw err;
-  console.log(`connected as id ${connection.threadId}\n`);
-  figlet('Employee tracker', function(err, data) {
-    if (err) {
-      console.log('Header not loaded');
-    } else {
-      console.log(data);
-    }  
-    // prompt();
-  });
-});
+figlet('Employee tracker', function(err, data) {
+  if (err) {
+    console.log('Header not loaded');
+  } else {
+    console.log(data);
+  }  
+})
+
+////add question prompt here
 
 ////// db sql
 // READ
