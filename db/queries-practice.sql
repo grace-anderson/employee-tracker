@@ -14,4 +14,10 @@
     LEFT JOIN employee mgr
     on mgr.id = e.manager_id
     order by e.id;
+
+    INSERT INTO department (department_name)
+    VALUES (Information Technology);
+
+INSERT INTO department (department_name) values ("Information Technology")
+
     `
