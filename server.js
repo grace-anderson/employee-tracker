@@ -1,8 +1,9 @@
 const express = require("express");
-// Import and require mysql2
+// Import and require mysql2, inquirer, console.table
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
 const consoleTable = require("console.table");
+const figlet = require("figlet");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -17,12 +18,25 @@ const db = mysql.createConnection(
     host: "localhost",
     // MySQL username,
     user: "root",
-    // TODO: Add MySQL password here
+    // MySQL password
     password: "password123",
     database: "employees_db",
   },
   console.log(`Connected to the employees_db database.`)
 );
+
+connection.connect((err) => {
+  if (err) throw err;
+  console.log(`connected as id ${connection.threadId}\n`);
+  figlet('Employee tracker', function(err, data) {
+    if (err) {
+      console.log('Header not loaded');
+    } else {
+      console.log(data);
+    }  
+    // prompt();
+  });
+});
 
 ////// db sql
 // READ
