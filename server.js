@@ -24,8 +24,8 @@ const db = mysql.createConnection(
   console.log(`Connected to the employees_db database.`)
 );
 
-////// db queries
-// VIEW queries
+////// db sql
+// READ
 // View all departments
 app.get('/api/departments', (req, res) => {
   const sql = `SELECT * FROM department`;
@@ -89,6 +89,9 @@ app.get('/api/employees', (req, res) => {
     });
   });
 });
+
+// CREATE
+// insert department
 
 
 ///////////////////////////////////
