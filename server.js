@@ -4,6 +4,7 @@ const mysql = require("mysql2");
 const inquirer = require("inquirer");
 const consoleTable = require("console.table");
 const figlet = require("figlet");
+const res = require("express/lib/response");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -46,7 +47,7 @@ connection
     promptChoice();
   })
   .catch(console.log)
-  .then(() => connection.end());
+  // .then(() => connection.end());
 
 //prompt questions
 function promptChoice() {
@@ -109,10 +110,19 @@ function promptChoice() {
 }
 
 // READ
-// View all departments 
+// View all departments
 
 function viewAllDepartments() {
-
+  connection
+    .promise()
+    .query("SELECT * FROM department")
+    .then(([sql]) => {
+      console.log(` `)
+      console.table(sql)
+      promptChoice();
+    })
+    .catch(console.log)
+    .then(() => connection.end());
 }
 
 app.get("/api/departments", (req, res) => {
