@@ -69,7 +69,7 @@ function promptChoice() {
         ],
       },
     ])
-    //TODO functions in each choice
+    //user choice triggers function
     .then((selection) => {
       switch (selection.choice) {
         case "View all departments":
