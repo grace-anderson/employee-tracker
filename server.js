@@ -61,9 +61,9 @@ function promptChoice() {
           "View all departments",
           "View all roles",
           "View all employees",
-          "Add a department",
-          "Add a role",
-          "Add an employee",
+          "Add a new department",
+          "Add a new role",
+          "Add an new employee",
           "Update an employee role",
           "Exit"
         ],
@@ -84,8 +84,8 @@ function promptChoice() {
           viewAllEmployees();
           break;
 
-        case "Add a department":
-          addDepartment();
+        case "Add a new department":
+          addNewDepartment();
           break;
 
         case "Add a role":
@@ -121,7 +121,7 @@ function viewAllDepartments() {
     .promise()
     .query("SELECT * FROM department")
     .then(([sql]) => {
-      console.log(` `);
+      console.log(`\n`);
       console.table(sql);
       promptChoice();
     })
@@ -165,7 +165,7 @@ function viewAllEmployees() {
     order by e.id;
     `)
     .then(([sql]) => {
-      console.log(` `);
+      console.log(`\n`);
       console.table(sql);
       promptChoice();
     })
@@ -175,22 +175,28 @@ function viewAllEmployees() {
 
 // CREATE
 // insert department
-app.post("/api/new-department", ({ body }, res) => {
-  const sql = `INSERT INTO department (department_name)
-    VALUES (?)`;
-  const params = [body.department_name];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: body,
-    });
-  });
-});
+const addNewDepartment = async () => {
+  const response = await inquirer
+    .prompt([
+      {
+        name: 'addNewDepartment',
+        type: 'input',
+        message: `What is the new department's name? `
+      }
+    ])
+    
+    connection.query(
+      'INSERT INTO employees_db.department SET ?',
+      {
+        department_name: response.addNewDepartment,
+      },
+      (err) => {
+        if (err) throw err;
+        console.log(`New department added. Select "View all departments" to see the new department in the Departments table \n`)
+        promptChoice();
+      }
+    )
+}
 
 //insert role
 app.post("/api/new-role", ({ body }, res) => {
