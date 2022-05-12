@@ -126,7 +126,7 @@ function viewAllDepartments() {
       promptChoice();
     })
     .catch(console.log)
-    .then(() => connection.end());
+    // .then(() => connection.end());
 }
 
 // View all roles
@@ -146,12 +146,14 @@ function viewAllRoles() {
       promptChoice();
     })
     .catch(console.log)
-    .then(() => connection.end());
+    // .then(() => connection.end());
 }
 
 // View all employees
-app.get("/api/employees", (req, res) => {
-  const sql = `
+function viewAllEmployees() {
+  connection
+    .promise()
+    .query(`
     SELECT e.id as 'employee_id', e.first_name, e.last_name, r.title as 'job_title', d.department_name as department, r.salary, mgr.first_name as manager_first_name, mgr.last_name as manager_last_name
     FROM employee e
     JOIN role r
@@ -161,18 +163,15 @@ app.get("/api/employees", (req, res) => {
     LEFT JOIN employee mgr
     on mgr.id = e.manager_id
     order by e.id;
-    `;
-  db.query(sql, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows,
-    });
-  });
-});
+    `)
+    .then(([sql]) => {
+      console.log(` `);
+      console.table(sql);
+      promptChoice();
+    })
+    .catch(console.log)
+    // .then(() => connection.end());
+}
 
 // CREATE
 // insert department
