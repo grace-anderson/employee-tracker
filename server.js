@@ -2,7 +2,7 @@ const express = require("express");
 // Import and require mysql2, inquirer, console.table
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
-const consoleTable = require("console.table");
+const cTable = require("console.table");
 const figlet = require("figlet");
 const res = require("express/lib/response");
 
@@ -46,8 +46,8 @@ connection
   .then(() => {
     promptChoice();
   })
-  .catch(console.log)
-  // .then(() => connection.end());
+  .catch(console.log);
+// .then(() => connection.end());
 
 //prompt questions
 function promptChoice() {
@@ -65,6 +65,7 @@ function promptChoice() {
           "Add a role",
           "Add an employee",
           "Update an employee role",
+          "Exit"
         ],
       },
     ])
@@ -98,6 +99,10 @@ function promptChoice() {
         case "Update an employee role":
           updateEmployeeRole();
           break;
+
+        case "Exit":
+          connection.end();
+          break;
       }
     })
     .catch((error) => {
@@ -111,55 +116,38 @@ function promptChoice() {
 
 // READ
 // View all departments
-
 function viewAllDepartments() {
   connection
     .promise()
     .query("SELECT * FROM department")
     .then(([sql]) => {
-      console.log(` `)
-      console.table(sql)
+      console.log(` `);
+      console.table(sql);
       promptChoice();
     })
     .catch(console.log)
     .then(() => connection.end());
 }
 
-app.get("/api/departments", (req, res) => {
-  const sql = `SELECT * FROM department`;
-
-  db.query(sql, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows,
-    });
-  });
-});
-
 // View all roles
-app.get("/api/roles", (req, res) => {
-  const sql = `
+function viewAllRoles() {
+  connection
+    .promise()
+    .query(`
     SELECT r.title as 'role_title', r.id as role_id, d.department_name, r.salary
     FROM role r
     LEFT JOIN department d
     ON r.department_id = d.id
     ORDER BY r.id;
-    `;
-  db.query(sql, (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows,
-    });
-  });
-});
+    `)
+    .then(([sql]) => {
+      console.log(` `);
+      console.table(sql);
+      promptChoice();
+    })
+    .catch(console.log)
+    .then(() => connection.end());
+}
 
 // View all employees
 app.get("/api/employees", (req, res) => {
