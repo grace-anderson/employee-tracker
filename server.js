@@ -288,7 +288,7 @@ const addRole = async () => {
     },
     (err) => {
       if (err) throw err;
-      console.log(`${response.addRoleTitle} role added.`);
+      console.log(`${response.title} role added.`);
       promptChoice();
     }
   );
