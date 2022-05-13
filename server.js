@@ -2,7 +2,7 @@ const express = require("express");
 // Import and require mysql2, inquirer, console.table
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
-const cTable = require("console.table");
+// const cTable = require("console.table");
 const figlet = require("figlet");
 const res = require("express/lib/response");
 
@@ -108,6 +108,7 @@ function promptChoice() {
 
         case "Exit":
           connection.end();
+          process.exit();
           break;
       }
     })
@@ -158,21 +159,37 @@ function viewAllRoles() {
 
 // View all employees ///////////////////////////////////////////////////
 function viewAllEmployees() {
+
+  const original = ` SELECT e.id as 'employee_id', e.first_name, e.last_name, r.title as 'job_title', d.department_name as department, r.salary, mgr.first_name as manager_first_name, mgr.last_name as manager_last_name
+  FROM employee as e
+  JOIN role as r
+  ON e.id = r.id
+  JOIN department d
+  ON r.department_id = d.id
+  LEFT JOIN employee mgr
+  on mgr.id = e.manager_id
+  order by e.id;`
+
+  const query = `
+  SELECT 
+	e.id as 'id',
+  e.first_name as 'First Name',
+  e.last_name as 'Last Name',
+  role.title as 'Role',
+  department_name as 'Department',
+  concat(employee.first_name, " ", employee.last_name) as 'Manager'
+
+ FROM employee as e
+JOIN \`role\`
+on role.id = e.role_id
+Join \`department\`
+on role.department_id = department.id
+left join employee 
+on  employee.id  = e.manager_id;
+`
   connection
     .promise()
-    .query(
-      `
-    SELECT e.id as 'employee_id', e.first_name, e.last_name, r.title as 'job_title', d.department_name as department, r.salary, mgr.first_name as manager_first_name, mgr.last_name as manager_last_name
-    FROM employee e
-    JOIN role r
-    ON e.id = r.id
-    JOIN department d
-    ON r.department_id = d.id
-    LEFT JOIN employee mgr
-    on mgr.id = e.manager_id
-    order by e.id;
-    `
-    )
+    .query(query)
     .then(([sql]) => {
       console.log(`\n`);
       console.table(sql);
@@ -189,7 +206,7 @@ const addDepartment = async () => {
       name: "addDepartment",
       type: "input",
       message: `What is name of the department? `,
-      validate: requiredQuestions("Department name is required")
+      validate: requiredQuestions("Department name is required"),
     },
   ]);
 
@@ -208,7 +225,6 @@ const addDepartment = async () => {
 
 //insert role ///////////////////////////////////////////////////////////
 const addRole = async () => {
-
   //create list for user to select department
   const departmentList = [];
   connection.query("SELECT * FROM department", (err, res) => {
@@ -230,21 +246,21 @@ const addRole = async () => {
       name: "title",
       type: "input",
       message: `What is the role's title?`,
-      validate: requiredQuestions("Title is required")
+      validate: requiredQuestions("Title is required"),
     },
     {
       name: "salary",
       type: "input",
       message: `What is the role's salary?`,
       validate: requiredQuestions("Department name is required"),
-      validate: validateNumber
+      validate: validateNumber,
     },
     {
       type: "list",
       name: "department",
       choices: departmentList,
       message: "Select the role's department",
-      validate: requiredQuestions("The role's department is required")
+      validate: requiredQuestions("The role's department is required"),
     },
   ]);
 
@@ -268,7 +284,6 @@ const addRole = async () => {
 //   addEmployee();
 
 const addEmployee = async () => {
-
   //create list for user to select role
   const roleList = [];
   connection.query("SELECT id, title FROM role", (err, res) => {
@@ -284,69 +299,72 @@ const addEmployee = async () => {
     });
   });
 
-  //create list for user to select employee's manager
+  // create list for user to select employee's manager
+  managerList = [];
+  connection.query(
+    "SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name",
+    (err, res) => {
+      if (err) throw err;
+
+      res.forEach((manager) => {
+        let managerObject = {
+          name: manager.first_name + " " + manager.last_name,
+          value: manager.id,
+        };
   
+        managerList.push(managerObject);
+
+      });
+      let nullObject = {
+        name: "No manager",
+        value: null
+      };
+
+      managerList.push(nullObject)
+    });
 
   const response = await inquirer.prompt([
     {
       name: "first_name",
       type: "input",
       message: `What is the employee's first name?`,
-      validate: requiredQuestions("First name is required")
+      validate: requiredQuestions("First name is required"),
     },
     {
       name: "last_name",
       type: "input",
       message: `What is the employee's last name?`,
-      validate: requiredQuestions("Last name is required")
+      validate: requiredQuestions("Last name is required"),
     },
     {
       type: "list",
       name: "role",
       choices: roleList,
       message: "Select the employee's role",
-      validate: requiredQuestions("Role is required")
+      validate: requiredQuestions("Role is required"),
     },
-  ])
+    {
+      type: "list",
+      name: "manager",
+      choices: managerList,
+      message:
+        "Select the employee's manager or select none if employee has no manager",
+    },
+  ]);
 
-  connection.query(
+  await connection.promise().query(
     "INSERT INTO employee SET ?",
     {
       first_name: response.first_name,
       last_name: response.last_name,
       role_id: response.role,
-    },
-    (err) => {
-      if (err) throw err;
-      console.log(`${response.first_name} ${response.last_name} added to employees.`);
-      promptChoice();
-    }
-  );
-
-}
-
-////
-app.post("/api/new-employee", ({ body }, res) => {
-  const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
-    VALUES (?, ?, ?, ?)`;
-  const params = [
-    body.first_name,
-    body.last_name,
-    body.role_id,
-    body.manager_id,
-  ];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: body,
+      manager_id: response.manager,
     });
-  });
-});
+  console.log(
+      `${response.first_name} ${response.last_name} added to employees.`
+    );
+  return promptChoice();
+};
 
 //UPDATE
 //update employee role
