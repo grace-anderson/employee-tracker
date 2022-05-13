@@ -119,8 +119,7 @@ function promptChoice() {
     });
 }
 
-// READ
-// View all departments
+// View all departments //////////////////////////////////////////
 function viewAllDepartments() {
   connection
     .promise()
