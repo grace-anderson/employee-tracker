@@ -29,6 +29,7 @@ figlet.text(
       return;
     }
     console.log(data);
+    console.log(`\n`);
   }
 );
 
@@ -61,9 +62,9 @@ function promptChoice() {
           "View all departments",
           "View all roles",
           "View all employees",
-          "Add a new department",
-          "Add a new role",
-          "Add an new employee",
+          "Add a department",
+          "Add a role",
+          "Add an employee",
           "Update an employee role",
           "Exit"
         ],
@@ -84,8 +85,8 @@ function promptChoice() {
           viewAllEmployees();
           break;
 
-        case "Add a new department":
-          addNewDepartment();
+        case "Add a department":
+          addDepartment();
           break;
 
         case "Add a role":
@@ -175,24 +176,32 @@ function viewAllEmployees() {
 
 // CREATE
 // insert department
-const addNewDepartment = async () => {
+const addDepartment = async () => {
   const response = await inquirer
     .prompt([
       {
-        name: 'addNewDepartment',
+        name: 'addDepartment',
         type: 'input',
-        message: `What is the new department's name? `
+        message: `What is name of the department? `,
+        validate: addDepartment => {
+          if (addDepartment) {
+            return true;
+          } else {
+            console.log('Enter a department');
+            return false;
+          }
+        }
       }
     ])
     
     connection.query(
       'INSERT INTO employees_db.department SET ?',
       {
-        department_name: response.addNewDepartment,
+        department_name: response.addDepartment,
       },
       (err) => {
         if (err) throw err;
-        console.log(`New department added. Select "View all departments" to see the new department in the Departments table \n`)
+        console.log(`${response.addDepartment} department added.`)
         promptChoice();
       }
     )
