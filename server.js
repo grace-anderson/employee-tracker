@@ -9,6 +9,10 @@ const res = require("express/lib/response");
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+//require local modules
+const requiredQuestions = require("./src/requiredQuestions");
+const { validateNumber } = require("./src/validateNumber");
+
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -186,14 +190,7 @@ const addDepartment = async () => {
       name: "addDepartment",
       type: "input",
       message: `What is name of the department? `,
-      validate: (addDepartment) => {
-        if (addDepartment) {
-          return true;
-        } else {
-          console.log("Enter a department");
-          return false;
-        }
-      },
+      validate: requiredQuestions("Department name is required")
     },
   ]);
 
@@ -211,7 +208,6 @@ const addDepartment = async () => {
 };
 
 //insert role
-
 const addRole = async () => {
   const departmentList = [];
 
@@ -221,7 +217,7 @@ const addRole = async () => {
 
     res.forEach((department) => {
       let departmentObject = {
-        name: department.name,
+        name: department.department_name,
         value: department.id,
       };
 
@@ -235,47 +231,21 @@ const addRole = async () => {
       name: "title",
       type: "input",
       message: `What is the role's title?`,
-      validate: (title) => {
-        if (title) {
-          return true;
-        } else {
-          console.log(`Enter a title`);
-          return false;
-        }
-      },
+      validate: requiredQuestions("Title is required")
     },
     {
       name: "salary",
       type: "input",
       message: `What is the role's salary?`,
-      validate: (salary) => {
-        const numberRegex = /^\d+$/;
-        if (salary) {
-          if (salary.match(numberRegex)) {
-            return true;
-          } else {
-            console.log(`: ${salary} is invalid. Enter numbers only`);
-            return false;
-          }
-        } else {
-          console.log("A number is required");
-          return false;
-        }
-      },
+      validate: requiredQuestions("Department name is required"),
+      validate: validateNumber
     },
     {
       type: "list",
       name: "department",
       choices: departmentList,
       message: "Select the role's department",
-      validate: (department) => {
-        if (department) {
-          return true;
-        } else {
-          console.log(`Select a department`);
-          return false;
-        }
-      },
+      validate: requiredQuestions("The role's department is required")
     },
   ]);
 
