@@ -37,6 +37,7 @@ figlet.text(
   }
 );
 
+// Db connection ////////////////////////////////////////////////////////
 const connection = mysql.createConnection({
   host: "localhost",
   // MySQL username,
@@ -54,7 +55,7 @@ connection
   .catch(console.log);
 // .then(() => connection.end());
 
-//prompt questions
+//prompt questions, link to question functions //////////////////////////
 function promptChoice() {
   inquirer
     .prompt([
@@ -119,7 +120,7 @@ function promptChoice() {
     });
 }
 
-// View all departments //////////////////////////////////////////
+// View all departments //////////////////////////////////////////////////
 function viewAllDepartments() {
   connection
     .promise()
@@ -133,7 +134,7 @@ function viewAllDepartments() {
   // .then(() => connection.end());
 }
 
-// View all roles
+// View all roles /////////////////////////////////////////////////
 function viewAllRoles() {
   connection
     .promise()
@@ -155,7 +156,7 @@ function viewAllRoles() {
   // .then(() => connection.end());
 }
 
-// View all employees
+// View all employees ///////////////////////////////////////////////////
 function viewAllEmployees() {
   connection
     .promise()
@@ -181,8 +182,7 @@ function viewAllEmployees() {
   // .then(() => connection.end());
 }
 
-// CREATE
-// insert department
+// insert department ///////////////////////////////////////////////////
 const addDepartment = async () => {
   const response = await inquirer.prompt([
     {
@@ -206,11 +206,11 @@ const addDepartment = async () => {
   );
 };
 
-//insert role
+//insert role ///////////////////////////////////////////////////////////
 const addRole = async () => {
-  const departmentList = [];
 
   //create list for user to select department
+  const departmentList = [];
   connection.query("SELECT * FROM department", (err, res) => {
     if (err) throw err;
 
@@ -263,7 +263,69 @@ const addRole = async () => {
   );
 };
 
-//insert employee
+//add employee /////////////////////////////////////////////////////////
+// case "Add an employee":
+//   addEmployee();
+
+const addEmployee = async () => {
+
+  //create list for user to select role
+  const roleList = [];
+  connection.query("SELECT id, title FROM role", (err, res) => {
+    if (err) throw err;
+
+    res.forEach((role) => {
+      let roleObject = {
+        name: role.title,
+        value: role.id,
+      };
+
+      roleList.push(roleObject);
+    });
+  });
+
+  //create list for user to select employee's manager
+  
+
+  const response = await inquirer.prompt([
+    {
+      name: "first_name",
+      type: "input",
+      message: `What is the employee's first name?`,
+      validate: requiredQuestions("First name is required")
+    },
+    {
+      name: "last_name",
+      type: "input",
+      message: `What is the employee's last name?`,
+      validate: requiredQuestions("Last name is required")
+    },
+    {
+      type: "list",
+      name: "role",
+      choices: roleList,
+      message: "Select the employee's role",
+      validate: requiredQuestions("Role is required")
+    },
+  ])
+
+  connection.query(
+    "INSERT INTO employee SET ?",
+    {
+      first_name: response.first_name,
+      last_name: response.last_name,
+      role_id: response.role,
+    },
+    (err) => {
+      if (err) throw err;
+      console.log(`${response.first_name} ${response.last_name} added to employees.`);
+      promptChoice();
+    }
+  );
+
+}
+
+////
 app.post("/api/new-employee", ({ body }, res) => {
   const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
     VALUES (?, ?, ?, ?)`;
@@ -309,7 +371,7 @@ app.put("/api/employee/:id", (req, res) => {
   });
 });
 
-///////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 // Default response for any other request (Not Found)
 app.use((req, res) => {
