@@ -66,7 +66,7 @@ function promptChoice() {
           "Add a role",
           "Add an employee",
           "Update an employee role",
-          "Exit"
+          "Exit",
         ],
       },
     ])
@@ -126,35 +126,38 @@ function viewAllDepartments() {
       console.table(sql);
       promptChoice();
     })
-    .catch(console.log)
-    // .then(() => connection.end());
+    .catch(console.log);
+  // .then(() => connection.end());
 }
 
 // View all roles
 function viewAllRoles() {
   connection
     .promise()
-    .query(`
+    .query(
+      `
     SELECT r.title as 'role_title', r.id as role_id, d.department_name, r.salary
     FROM role r
     LEFT JOIN department d
     ON r.department_id = d.id
     ORDER BY r.id;
-    `)
+    `
+    )
     .then(([sql]) => {
       console.log(` `);
       console.table(sql);
       promptChoice();
     })
-    .catch(console.log)
-    // .then(() => connection.end());
+    .catch(console.log);
+  // .then(() => connection.end());
 }
 
 // View all employees
 function viewAllEmployees() {
   connection
     .promise()
-    .query(`
+    .query(
+      `
     SELECT e.id as 'employee_id', e.first_name, e.last_name, r.title as 'job_title', d.department_name as department, r.salary, mgr.first_name as manager_first_name, mgr.last_name as manager_last_name
     FROM employee e
     JOIN role r
@@ -164,66 +167,132 @@ function viewAllEmployees() {
     LEFT JOIN employee mgr
     on mgr.id = e.manager_id
     order by e.id;
-    `)
+    `
+    )
     .then(([sql]) => {
       console.log(`\n`);
       console.table(sql);
       promptChoice();
     })
-    .catch(console.log)
-    // .then(() => connection.end());
+    .catch(console.log);
+  // .then(() => connection.end());
 }
 
 // CREATE
 // insert department
 const addDepartment = async () => {
-  const response = await inquirer
-    .prompt([
-      {
-        name: 'addDepartment',
-        type: 'input',
-        message: `What is name of the department? `,
-        validate: addDepartment => {
-          if (addDepartment) {
-            return true;
-          } else {
-            console.log('Enter a department');
-            return false;
-          }
+  const response = await inquirer.prompt([
+    {
+      name: "addDepartment",
+      type: "input",
+      message: `What is name of the department? `,
+      validate: (addDepartment) => {
+        if (addDepartment) {
+          return true;
+        } else {
+          console.log("Enter a department");
+          return false;
         }
-      }
-    ])
-    
-    connection.query(
-      'INSERT INTO employees_db.department SET ?',
-      {
-        department_name: response.addDepartment,
       },
-      (err) => {
-        if (err) throw err;
-        console.log(`${response.addDepartment} department added.`)
-        promptChoice();
-      }
-    )
-}
+    },
+  ]);
+
+  connection.query(
+    "INSERT INTO department SET ?",
+    {
+      department_name: response.addDepartment,
+    },
+    (err) => {
+      if (err) throw err;
+      console.log(`${response.addDepartment} department added.`);
+      promptChoice();
+    }
+  );
+};
 
 //insert role
-app.post("/api/new-role", ({ body }, res) => {
-  const sql = `INSERT INTO role (title, salary, department_id)
-    VALUES (?, ?, ?)`;
-  const params = [body.title, body.salary, body.department_id];
 
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: body,
+const addRole = async () => {
+  const departmentList = [];
+
+  //create list for user to select department
+  connection.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
+
+    res.forEach((department) => {
+      let departmentObject = {
+        name: department.name,
+        value: department.id,
+      };
+
+      departmentList.push(departmentObject);
     });
   });
-});
+
+  const response = await inquirer.prompt([
+    // prompt user input role title, salary, department
+    {
+      name: "title",
+      type: "input",
+      message: `What is the role's title?`,
+      validate: (title) => {
+        if (title) {
+          return true;
+        } else {
+          console.log(`Enter a title`);
+          return false;
+        }
+      },
+    },
+    {
+      name: "salary",
+      type: "input",
+      message: `What is the role's salary?`,
+      validate: (salary) => {
+        const numberRegex = /^\d+$/;
+        if (salary) {
+          if (salary.match(numberRegex)) {
+            return true;
+          } else {
+            console.log(`: ${salary} is invalid. Enter numbers only`);
+            return false;
+          }
+        } else {
+          console.log("A number is required");
+          return false;
+        }
+      },
+    },
+    {
+      type: "list",
+      name: "department",
+      choices: departmentList,
+      message: "Select the role's department",
+      validate: (department) => {
+        if (department) {
+          return true;
+        } else {
+          console.log(`Select a department`);
+          return false;
+        }
+      },
+    },
+  ]);
+
+  connection.query(
+    "INSERT INTO role SET ?",
+    {
+      title: response.title,
+      salary: response.salary,
+      department_id: response.department,
+    },
+    (err) => {
+      if (err) throw err;
+      console.log(`${response.addRoleTitle} role added.`);
+      promptChoice();
+    }
+  );
+};
 
 //insert employee
 app.post("/api/new-employee", ({ body }, res) => {

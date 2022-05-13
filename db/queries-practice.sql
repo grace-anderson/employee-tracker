@@ -22,4 +22,6 @@ INSERT INTO department (department_name) values ("Information Technology")
 
 UPDATE employee SET role_id = 5 WHERE id = 8
 
+select * from role;
+
     `
