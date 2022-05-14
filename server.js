@@ -280,9 +280,6 @@ const addRole = async () => {
 };
 
 //add employee /////////////////////////////////////////////////////////
-// case "Add an employee":
-//   addEmployee();
-
 const addEmployee = async () => {
   //create list for user to select role
   const roleList = [];
@@ -366,8 +363,15 @@ const addEmployee = async () => {
   return promptChoice();
 };
 
-//UPDATE
-//update employee role
+//update employee role /////////////////////////////////////
+// case "Update an employee role":
+//   updateEmployeeRole();
+//   break;
+const updateEmployeeRole = async () => {
+
+};
+
+/////////////
 app.put("/api/employee/:id", (req, res) => {
   const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
   const params = [req.params.role_id, req.body.id];
