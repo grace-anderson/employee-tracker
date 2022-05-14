@@ -67,6 +67,7 @@ function promptChoice() {
           "View all departments",
           "View all roles",
           "View all employees",
+          "View employees by manager",
           "Add a department",
           "Add a role",
           "Add an employee",
@@ -93,6 +94,10 @@ function promptChoice() {
           viewAllEmployees();
           break;
 
+        case "View employees by manager":
+          viewEmployeesbyManager();
+          break;
+
         case "Add a department":
           addDepartment();
           break;
@@ -116,7 +121,7 @@ function promptChoice() {
         case "Delete a role":
           deleteRole();
           break;
-        
+
         case "Delete an employee":
           deleteEmployee();
           break;
@@ -201,6 +206,70 @@ function viewAllEmployees() {
     .catch(console.log);
   // .then(() => connection.end());
 }
+
+// view employees by manager //////////////////////////////////////////
+const viewEmployeesbyManager = () => {
+  connection.query(
+    `
+    select mgr.id, mgr.first_name, mgr.last_name
+    from employee emp
+    LEFT JOIN employee mgr
+      on mgr.id  = emp.manager_id
+      where mgr.id IS NOT NULL
+    group by mgr.id
+    ;
+    `,
+    (err, managers) => {
+      if (err) throw err;
+      const managerList = [
+        {
+          name: "No manager",
+          value: 0,
+        },
+      ];
+      managers.forEach(({ first_name, last_name, id }) => {
+        managerList.push({
+          name: first_name + " " + last_name,
+          value: id,
+        });
+      });
+
+      let questions = [
+        {
+          type: "list",
+          name: "manager_id",
+          choices: managerList,
+          message: "Choose a manager to see their employees",
+        },
+      ];
+
+      inquirer.prompt(questions).then((response) => {
+        let manager_id, query;
+        if (response.manager_id) {
+          query = `SELECT e.first_name, e.last_name, 
+          CONCAT(m.first_name, " ", m.last_name) AS manager
+          FROM employee AS e
+          LEFT JOIN employee AS m ON e.manager_id = m.id
+          WHERE e.manager_id = ?;`;
+        } else {
+          manager_id = null;
+          query = `SELECT e.first_name, e.last_name, 
+          CONCAT(m.first_name, " ", m.last_name) AS manager
+          FROM employee AS e
+          LEFT JOIN employee AS m ON e.manager_id = m.id
+          WHERE e.manager_id is null;`;
+        }
+        connection.query(query, [response.manager_id], (err, res) => {
+          if (err) throw err;
+          console.table(res);
+          promptChoice();
+        });
+      });
+    }
+  );
+};
+
+
 
 // insert department ////////////////////////////////////////////////////
 const addDepartment = async () => {
@@ -423,35 +492,38 @@ const updateEmployeeRole = () => {
 //delete department ////////////////////////////////////////////////////
 const deleteDepartment = () => {
   const departments = [];
-  connection.query("SELECT * FROM department ORDER BY department_name", (err, res) => {
-    if (err) throw err;
+  connection.query(
+    "SELECT * FROM department ORDER BY department_name",
+    (err, res) => {
+      if (err) throw err;
 
-    res.forEach((department) => {
-      let departmentObject = {
-        name: department.department_name,
-        value: department.id,
-      };
-      departments.push(departmentObject);
-    });
-
-    let questions = [
-      {
-        type: "list",
-        name: "id",
-        choices: departments,
-        message: "Choose the department to delete",
-      },
-    ];
-
-    inquirer.prompt(questions).then((response) => {
-      const query = `DELETE FROM department WHERE id = ?`;
-      connection.query(query, [response.id], (err, res) => {
-        if (err) throw err;
-        console.log(`\nDepartment deleted\n`);
-        promptChoice();
+      res.forEach((department) => {
+        let departmentObject = {
+          name: department.department_name,
+          value: department.id,
+        };
+        departments.push(departmentObject);
       });
-    });
-  });
+
+      let questions = [
+        {
+          type: "list",
+          name: "id",
+          choices: departments,
+          message: "Choose the department to delete",
+        },
+      ];
+
+      inquirer.prompt(questions).then((response) => {
+        const query = `DELETE FROM department WHERE id = ?`;
+        connection.query(query, [response.id], (err, res) => {
+          if (err) throw err;
+          console.log(`\nDepartment deleted\n`);
+          promptChoice();
+        });
+      });
+    }
+  );
 };
 
 //delete role ///////////////////////////////////////
