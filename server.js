@@ -71,6 +71,7 @@ function promptChoice() {
           "Add a role",
           "Add an employee",
           "Update an employee role",
+          "Delete a department",
           "Exit",
         ],
       },
@@ -415,7 +416,7 @@ const deleteDepartment = () => {
 
     res.forEach((department) => {
       let departmentObject = {
-        name: department.name,
+        name: department.department_name,
         value: department.id,
       };
       departments.push(departmentObject);
@@ -440,12 +441,3 @@ const deleteDepartment = () => {
     });
   });
 };
-
-// Default response for any other request (Not Found)
-app.use((req, res) => {
-  res.status(404).end();
-});
-
-app.listen(PORT, () => {
-  // console.log(`Server running on port ${PORT}`);
-});
