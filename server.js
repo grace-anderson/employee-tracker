@@ -73,6 +73,7 @@ function promptChoice() {
           "Update an employee role",
           "Delete a department",
           "Delete a role",
+          "Delete an employee",
           "Exit",
         ],
       },
@@ -114,6 +115,10 @@ function promptChoice() {
 
         case "Delete a role":
           deleteRole();
+          break;
+        
+        case "Delete an employee":
+          deleteEmployee();
           break;
 
         case "Exit":
@@ -418,7 +423,7 @@ const updateEmployeeRole = () => {
 //delete department ////////////////////////////////////////////////////
 const deleteDepartment = () => {
   const departments = [];
-  connection.query("SELECT * FROM department", (err, res) => {
+  connection.query("SELECT * FROM department ORDER BY department_name", (err, res) => {
     if (err) throw err;
 
     res.forEach((department) => {
@@ -449,10 +454,10 @@ const deleteDepartment = () => {
   });
 };
 
-//delete role
+//delete role ///////////////////////////////////////
 const deleteRole = () => {
   const roles = [];
-  connection.query("SELECT * FROM role", (err, res) => {
+  connection.query("SELECT * FROM role ORDER BY title", (err, res) => {
     if (err) throw err;
 
     res.forEach((role) => {
@@ -483,34 +488,34 @@ const deleteRole = () => {
   });
 };
 
-//delete role
+//delete role ////////////////////////////////////////
 const deleteEmployee = () => {
   const employees = [];
-  connection.query("SELECT * FROM employee", (err, res) => {
+  connection.query("SELECT * FROM employee ORDER BY first_name", (err, res) => {
     if (err) throw err;
 
-    res.forEach((role) => {
+    res.forEach((employee) => {
       let employeeObject = {
-        name: role.title,
-        value: role.id,
+        name: employee.first_name + " " + employee.last_name,
+        value: employee.id,
       };
-      roles.push(roleObject);
+      employees.push(employeeObject);
     });
 
     let questions = [
       {
         type: "list",
         name: "id",
-        choices: roles,
-        message: "Choose the role to delete",
+        choices: employees,
+        message: "Choose the employee to delete",
       },
     ];
 
     inquirer.prompt(questions).then((response) => {
-      const query = `DELETE FROM role WHERE id = ?`;
+      const query = `DELETE FROM employee WHERE id = ?`;
       connection.query(query, [response.id], (err, res) => {
         if (err) throw err;
-        console.log(`\nRole deleted\n`);
+        console.log(`\nEmployee deleted\n`);
         promptChoice();
       });
     });
