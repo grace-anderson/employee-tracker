@@ -73,7 +73,8 @@ function promptChoice() {
           "Add a department",
           "Add a role",
           "Add an employee",
-          "Update an employee role",
+          "Update an employee's role",
+          "Update an employee's manager",
           "Delete a department",
           "Delete a role",
           "Delete an employee",
@@ -120,8 +121,12 @@ function promptChoice() {
           addEmployee();
           break;
 
-        case "Update an employee role":
+        case "Update an employee's role":
           updateEmployeeRole();
+          break;
+
+        case "Update an employee's manager":
+          updateEmployeeManager();
           break;
 
         case "Delete a department":
@@ -607,6 +612,52 @@ const updateEmployeeRole = () => {
             }
           );
         });
+      });
+    }
+  );
+};
+
+//update employee manager
+const updateEmployeeManager = () => {
+  connection.query(
+    "SELECT * FROM employee ORDER BY first_name",
+    (err, employees) => {
+      if (err) throw err;
+      const employeeList = [];
+      employees.forEach(({ first_name, last_name, id }) => {
+        employeeList.push({
+          name: first_name + " " + last_name,
+          value: id,
+        });
+      });
+
+      let questions = [
+        {
+          type: "list",
+          name: "id",
+          choices: employeeList,
+          message: "Select an employee to update their manager",
+        },
+        {
+          type: "list",
+          name: "manager_id",
+          choices: employeeList,
+          message: "Select the employee's new manager",
+        },
+      ];
+
+      inquirer.prompt(questions).then((response) => {
+        const query = `UPDATE employee SET ? WHERE ?? = ?;`;
+        connection.query(
+          query,
+          [{ manager_id: response.manager_id }, "id", response.id],
+          (err, res) => {
+            if (err) throw err;
+
+            console.log("\nEmployee's manager updated\n");
+            promptChoice();
+          }
+        );
       });
     }
   );
