@@ -359,6 +359,7 @@ const addEmployee = async () => {
 };
 
 //update employee role /////////////////////////////////////
+
 // const updateEmployeeRole = async () => {
 //   // create list for user to select employee
 //   const employeeList = [];
@@ -416,26 +417,77 @@ const addEmployee = async () => {
 //   console.log(`Employee's role updated.`);
 //   return promptChoice();
 // };
+/////////////////////////////////////////////////////////////////////////
 
-const updateEmployeeRole2 = mysql.createConnection({})
-  .then(conn => conn.query('SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name'))
-  .then(([rows, fields]) => console.log(rows[0].foo));
+const updateEmployeeRole = async () => {
+  // create list for user to select employee
+  employeeList = [];
+  findAllEmployees().then(([rows]) => {
+    // console.log(rows);
+    rows.forEach((employee) => {
+      let employeeObject = {
+        name: employee.first_name + " " + employee.last_name,
+        value: employee.id,
+      };
+      employeeList.push(employeeObject);
+    });
 
-  function viewAllDepartments() {
-    connection
-      .promise()
-      .query("SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name")
-      .then(([sql]) => {
-        console.log(`\n`);
-        console.table(sql);
-        promptChoice();
-      })
-      .catch(console.log);
-    // .then(() => connection.end());
-  }
+    inquirer.prompt([
+      {
+        type: "list",
+        name: "employee",
+        choices: employeeList,
+        message: "Select an employee to update their role",
+      },
+    ]);
 
+    //create list for user to select role
+    employeeRoleList = [];
+    findAllRoles().then(([rows]) => {
+      // console.log(rows);
+      rows.forEach((role) => {
+        let roleObject = {
+          name: role.title,
+          value: role.id,
+        };
+        employeeRoleList.push(roleObject);
+      });
 
-/////////////
+      inquirer.prompt([
+        {
+          type: "list",
+          name: "employeeRoleId",
+          choices: employeeRoleList,
+          message: "Select the employee's new role",
+        },
+      ]);
+    });
+  });
+
+  // await connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ?? = ?", {
+  //   role_id: response.employeeRoleId,
+  //   id: response.employee,
+  //   id
+  // });
+  // console.log(
+  //   `${response.first_name} ${response.last_name}'s role updated.`
+  // );
+  // return promptChoice();
+};
+
+//findAllEmployees used by updateEmployeeRole
+const findAllEmployees = () => {
+  return connection
+    .promise()
+    .query("SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name");
+};
+
+//findAllRows used by updateEmployeeRole
+const findAllRoles = () => {
+  return connection.promise().query("SELECT id, title FROM role");
+};
+
+/////////////////////////////////////////////////////////////////////////
 // app.put("/api/employee/:id", (req, res) => {
 //   const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
 //   const params = [req.params.role_id, req.body.id];
