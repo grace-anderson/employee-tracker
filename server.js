@@ -353,108 +353,65 @@ const addEmployee = async () => {
     manager_id: response.manager,
   });
   console.log(
-    `${response.first_name} ${response.last_name} added to employees.`
+    `\n${response.first_name} ${response.last_name} added to employees.\n`
   );
   return promptChoice();
 };
 
-// const updateEmployeeRole = () => {
-//   // create list for user to select employee
-//   employeeList = [];
-//   findAllEmployees().then(([rows]) => {
-//     // console.log(rows);
-//     rows.forEach((employee) => {
-//       let employeeObject = {
-//         name: employee.first_name + " " + employee.last_name,
-//         value: employee.id,
-//       };
-//       employeeList.push(employeeObject);
-//     });
+const updateEmployeeRole = () => {
+  connection.query("SELECT * FROM employee ORDER BY first_name", (err, employees) => {
+    if (err) throw err;
+    const employeeList = [];
+    employees.forEach(({ first_name, last_name, id }) => {
+      employeeList.push({
+        name: first_name + " " + last_name,
+        value: id,
+      });
+    });
 
-//     inquirer
-//       .prompt([
-//         {
-//           type: "list",
-//           name: "employee",
-//           choices: employeeList,
-//           message: "Select an employee to update their role",
-//         },
-//       ])
-//       .then((employee) => {
-//         console.log(employee);
-//         //create list for user to select role
-//         employeeRoleList = [];
-//         findAllRoles().then(([rows]) => {
-//           // console.log(rows);
-//           rows.forEach((role) => {
-//             let roleObject = {
-//               name: role.title,
-//               value: role.id,
-//             };
-//             employeeRoleList.push(roleObject);
-//           });
+    connection.query("SELECT * FROM role", (err, roles) => {
+      if (err) throw err;
+      const roleList = [];
+      roles.forEach(({ title, id }) => {
+        roleList.push({
+          name: title,
+          value: id,
+        });
+      });
 
-//           inquirer
-//             .prompt([
-//               {
-//                 type: "list",
-//                 name: "employeeRoleId",
-//                 choices: employeeRoleList,
-//                 message: "Select the employee's new role",
-//               },
-//             ])
-//             .then((response) => {
-//               console.log(response);
-//               connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ? = ?", {
-//                 role_id: response.role_id,
-//                 id: response.employee,
-//                 employee.id
-//               });
+      let questions = [
+        {
+          type: "list",
+          name: "id",
+          choices: employeeList,
+          message: "Select an employee to update their role",
+        },
+        {
+          type: "list",
+          name: "role_id",
+          choices: roleList,
+          message: "Select the employee's new role",
+        },
+      ];
 
-//               console.log(`Employee role updated.`);
-              
-//             });
-//             promptChoice();
-//         });
-//       });
-//   });
-// };
+      inquirer
+        .prompt(questions)
+        .then((response) => {
+          const query = `UPDATE EMPLOYEE SET ? WHERE ?? = ?;`;
+          connection.query(
+            query,
+            [{ role_id: response.role_id }, "id", response.id],
+            (err, res) => {
+              if (err) throw err;
 
-//findAllEmployees used by updateEmployeeRole
-const findAllEmployees = () => {
-  return connection
-    .promise()
-    .query("SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name");
+              console.log("\nEmployee's role updated\n");
+              promptChoice();
+            }
+          );
+        })
+    });
+  });
 };
-
-//findAllRows used by updateEmployeeRole
-const findAllRoles = () => {
-  return connection.promise().query("SELECT id, title FROM role");
-};
-
-/////////////////////////////////////////////////////////////////////////
-// app.put("/api/employee/:id", (req, res) => {
-//   const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
-//   const params = [req.params.role_id, req.body.id];
-
-//   db.query(sql, params, (err, result) => {
-//     if (err) {
-//       res.status(400).json({ error: err.message });
-//     } else if (!result.affectedRows) {
-//       res.json({
-//         message: "Employee not found",
-//       });
-//     } else {
-//       res.json({
-//         message: "success",
-//         data: req.body,
-//         changes: result.affectedRows,
-//       });
-//     }
-//   });
-// });
-
-//////////////////////////////////////////////////////////////
 
 // Default response for any other request (Not Found)
 app.use((req, res) => {
