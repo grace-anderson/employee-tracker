@@ -277,7 +277,7 @@ const addRole = async () => {
   );
 };
 
-//add employee /////////////////////////////////////////////////////////
+//add employee /////////////////////////////////////////
 const addEmployee = async () => {
   //create list for user to select role
   const roleList = [];
@@ -295,7 +295,7 @@ const addEmployee = async () => {
   });
 
   // create list for user to select employee's manager
-  managerList = [];
+  const managerList = [];
   connection.query(
     "SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name",
     (err, res) => {
@@ -342,8 +342,7 @@ const addEmployee = async () => {
       type: "list",
       name: "manager",
       choices: managerList,
-      message:
-        "Select the employee's manager or select 'No manager'",
+      message: "Select the employee's manager or select 'No manager'",
     },
   ]);
 
@@ -360,67 +359,81 @@ const addEmployee = async () => {
 };
 
 //update employee role /////////////////////////////////////
-const updateEmployeeRole = async () => {
-  // create list for user to select employee
-  employeeList = [];
-  connection.query(
-    "SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name",
-    (err, res) => {
-      if (err) throw err;
+// const updateEmployeeRole = async () => {
+//   // create list for user to select employee
+//   const employeeList = [];
+//   connection.query(
+//     "SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name",
+//     (err, res) => {
+//       if (err) throw err;
 
-      res.forEach((employee) => {
-        let employeeObject = {
-          name: employee.first_name + " " + employee.last_name,
-          value: employee.id
-        };
+//       res.forEach((employee) => {
+//         let employeeObject = {
+//           name: employee.first_name + " " + employee.last_name,
+//           value: employee.id,
+//         };
 
-        employeeList.push(employeeObject);
-      });
-    }
-  );
+//         employeeList.push(employeeObject);
+//       });
+//       // console.log('employee list', employeeList);
+//     }
+//   );
 
-  //create list for user to select role
-  const employeeRoleList = [];
-  connection.query("SELECT id, title FROM role", (err, res) => {
-    if (err) throw err;
+//   //create list for user to select role
+//   const employeeRoleList = [];
+//   connection.query("SELECT id, title FROM role", (err, res) => {
+//     if (err) throw err;
 
-    res.forEach((role) => {
-      let roleObject = {
-        name: role.title,
-        value: role.id,
-      };
-      employeeRoleList.push(roleObject);
-    });
-  });
+//     res.forEach((role) => {
+//       let roleObject = {
+//         name: role.title,
+//         value: role.id,
+//       };
+//       employeeRoleList.push(roleObject);
+//     });
+//   });
 
-  const response = await inquirer.prompt([
-    {
-      type: "list",
-      name: "employee",
-      choices: employeeList,
-      message:
-        "Select an employee to update their role",
-    },
-    {
-      type: "list",
-      name: "employeeRoleId",
-      choices: employeeRoleList,
-      message:
-        "Select the employee's new role",
-    },
-  ]);
+//   const response = await inquirer.prompt([
+//     {
+//       type: "list",
+//       name: "employee",
+//       choices: employeeList,
+//       message: "Select an employee to update their role",
+//     },
+//     {
+//       type: "list",
+//       name: "employeeRoleId",
+//       choices: employeeRoleList,
+//       message: "Select the employee's new role",
+//     },
+//   ]);
 
-  await connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ?? = ?", {
-    role_id: response.employeeRoleId,
-    id: response.employee,
-    id
-  });
-  console.log(
-    `${response.first_name} ${response.last_name}'s role updated.`
-  );
-  return promptChoice();
+//   await connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ?? = ?", {
+//     role_id: response.employeeRoleId,
+//     id: response.employee,
+//     id,
+//   });
+//   console.log(`Employee's role updated.`);
+//   return promptChoice();
+// };
 
-};
+const updateEmployeeRole2 = mysql.createConnection({})
+  .then(conn => conn.query('SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name'))
+  .then(([rows, fields]) => console.log(rows[0].foo));
+
+  function viewAllDepartments() {
+    connection
+      .promise()
+      .query("SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name")
+      .then(([sql]) => {
+        console.log(`\n`);
+        console.table(sql);
+        promptChoice();
+      })
+      .catch(console.log);
+    // .then(() => connection.end());
+  }
+
 
 /////////////
 // app.put("/api/employee/:id", (req, res) => {
