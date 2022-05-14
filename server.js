@@ -68,6 +68,7 @@ function promptChoice() {
           "View all roles",
           "View all employees",
           "View employees by manager",
+          "View a department's total utilised budget",
           "Add a department",
           "Add a role",
           "Add an employee",
@@ -96,6 +97,10 @@ function promptChoice() {
 
         case "View employees by manager":
           viewEmployeesbyManager();
+          break;
+
+        case "View a department's total utilised budget":
+          viewTotalUtilisedBudget();
           break;
 
         case "Add a department":
@@ -211,12 +216,12 @@ function viewAllEmployees() {
 const viewEmployeesbyManager = () => {
   connection.query(
     `
-    select mgr.id, mgr.first_name, mgr.last_name
-    from employee emp
-    LEFT JOIN employee mgr
-      on mgr.id  = emp.manager_id
-      where mgr.id IS NOT NULL
-    group by mgr.id
+    SELECT m.id, m.first_name, m.last_name
+    FROM employee e
+    LEFT JOIN employee m
+      on m.id  = e.manager_id
+      WHERE m.id IS NOT NULL
+    GROUP by m.id
     ;
     `,
     (err, managers) => {
@@ -246,18 +251,23 @@ const viewEmployeesbyManager = () => {
       inquirer.prompt(questions).then((response) => {
         let manager_id, query;
         if (response.manager_id) {
-          query = `SELECT e.first_name, e.last_name, 
+          query = `
+          SELECT e.first_name, e.last_name, 
           CONCAT(m.first_name, " ", m.last_name) AS manager
           FROM employee AS e
           LEFT JOIN employee AS m ON e.manager_id = m.id
-          WHERE e.manager_id = ?;`;
+          WHERE e.manager_id = ?;
+          `;
         } else {
+          //where employee has no manager (id, name is null)
           manager_id = null;
-          query = `SELECT e.first_name, e.last_name, 
+          query = `
+          SELECT e.first_name, e.last_name, 
           CONCAT(m.first_name, " ", m.last_name) AS manager
           FROM employee AS e
           LEFT JOIN employee AS m ON e.manager_id = m.id
-          WHERE e.manager_id is null;`;
+          WHERE e.manager_id is null;
+          `;
         }
         connection.query(query, [response.manager_id], (err, res) => {
           if (err) throw err;
@@ -269,9 +279,49 @@ const viewEmployeesbyManager = () => {
   );
 };
 
+// view total utilised budget ///////////////////////////////////
+const viewTotalUtilisedBudget = () => {
+  connection.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
 
+    const departmentList = [];
+    res.forEach(({ department_name, id }) => {
+      departmentList.push({
+        name: department_name,
+        value: id,
+      });
+    });
 
-// insert department ////////////////////////////////////////////////////
+    let questions = [
+      {
+        type: "list",
+        name: "id",
+        choices: departmentList,
+        message: "Select department to see it's total utlised budget",
+      },
+    ];
+
+    inquirer.prompt(questions).then((response) => {
+      const query = `
+        SELECT department_name,
+        SUM(salary) as total_utilised_budget
+        FROM employee as e
+        JOIN role
+        ON role.id = e.role_id
+        JOIN department
+        ON role.department_id = department.id
+        WHERE department_id = ?
+      `;
+      connection.query(query, [response.id], (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        promptChoice();
+      });
+    });
+  });
+};
+
+// insert department ////////////////////////////////////////////
 const addDepartment = async () => {
   const response = await inquirer.prompt([
     {
@@ -295,7 +345,7 @@ const addDepartment = async () => {
   );
 };
 
-//insert role ///////////////////////////////////////////////////////////
+//insert role ///////////////////////////////////////////////////
 const addRole = async () => {
   //create list for user to select department
   const departmentList = [];
