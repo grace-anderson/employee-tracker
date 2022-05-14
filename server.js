@@ -72,6 +72,7 @@ function promptChoice() {
           "Add an employee",
           "Update an employee role",
           "Delete a department",
+          "Delete a role",
           "Exit",
         ],
       },
@@ -109,6 +110,10 @@ function promptChoice() {
 
         case "Delete a department":
           deleteDepartment();
+          break;
+
+        case "Delete a role":
+          deleteRole();
           break;
 
         case "Exit":
@@ -272,7 +277,7 @@ const addRole = async () => {
   );
 };
 
-//add employee /////////////////////////////////////////
+//add employee /////////////////////////////////////////////////////////
 const addEmployee = async () => {
   //create list for user to select role
   const roleList = [];
@@ -353,6 +358,7 @@ const addEmployee = async () => {
   return promptChoice();
 };
 
+//update employee role /////////////////////////////////////////////////
 const updateEmployeeRole = () => {
   connection.query(
     "SELECT * FROM employee ORDER BY first_name",
@@ -409,6 +415,7 @@ const updateEmployeeRole = () => {
   );
 };
 
+//delete department ////////////////////////////////////////////////////
 const deleteDepartment = () => {
   const departments = [];
   connection.query("SELECT * FROM department", (err, res) => {
@@ -436,6 +443,74 @@ const deleteDepartment = () => {
       connection.query(query, [response.id], (err, res) => {
         if (err) throw err;
         console.log(`\nDepartment deleted\n`);
+        promptChoice();
+      });
+    });
+  });
+};
+
+//delete role
+const deleteRole = () => {
+  const roles = [];
+  connection.query("SELECT * FROM role", (err, res) => {
+    if (err) throw err;
+
+    res.forEach((role) => {
+      let roleObject = {
+        name: role.title,
+        value: role.id,
+      };
+      roles.push(roleObject);
+    });
+
+    let questions = [
+      {
+        type: "list",
+        name: "id",
+        choices: roles,
+        message: "Choose the role to delete",
+      },
+    ];
+
+    inquirer.prompt(questions).then((response) => {
+      const query = `DELETE FROM role WHERE id = ?`;
+      connection.query(query, [response.id], (err, res) => {
+        if (err) throw err;
+        console.log(`\nRole deleted\n`);
+        promptChoice();
+      });
+    });
+  });
+};
+
+//delete role
+const deleteEmployee = () => {
+  const employees = [];
+  connection.query("SELECT * FROM employee", (err, res) => {
+    if (err) throw err;
+
+    res.forEach((role) => {
+      let employeeObject = {
+        name: role.title,
+        value: role.id,
+      };
+      roles.push(roleObject);
+    });
+
+    let questions = [
+      {
+        type: "list",
+        name: "id",
+        choices: roles,
+        message: "Choose the role to delete",
+      },
+    ];
+
+    inquirer.prompt(questions).then((response) => {
+      const query = `DELETE FROM role WHERE id = ?`;
+      connection.query(query, [response.id], (err, res) => {
+        if (err) throw err;
+        console.log(`\nRole deleted\n`);
         promptChoice();
       });
     });
