@@ -68,6 +68,7 @@ function promptChoice() {
           "View all roles",
           "View all employees",
           "View employees by manager",
+          "View employees by department",
           "View a department's total utilised budget",
           "Add a department",
           "Add a role",
@@ -97,6 +98,10 @@ function promptChoice() {
 
         case "View employees by manager":
           viewEmployeesbyManager();
+          break;
+
+        case "View employees by department":
+          viewEmployeesByDepartment();
           break;
 
         case "View a department's total utilised budget":
@@ -232,6 +237,7 @@ const viewEmployeesbyManager = () => {
           value: 0,
         },
       ];
+
       managers.forEach(({ first_name, last_name, id }) => {
         managerList.push({
           name: first_name + " " + last_name,
@@ -270,6 +276,73 @@ const viewEmployeesbyManager = () => {
           `;
         }
         connection.query(query, [response.manager_id], (err, res) => {
+          if (err) throw err;
+          console.table(res);
+          promptChoice();
+        });
+      });
+    }
+  );
+};
+
+// view employees by department /////////////////////////////////
+const viewEmployeesByDepartment = () => {
+  connection.query(
+    `
+    SELECT * FROM department 
+    where id IS NOT NULL;
+    `,
+    (err, departments) => {
+      if (err) throw err;
+      const departmentList = [
+        {
+          name: "No department",
+          value: 0,
+        },
+      ];
+
+      departments.forEach(({ department_name, id }) => {
+        departmentList.push({
+          name: department_name,
+          value: id,
+        });
+      });
+
+      let questions = [
+        {
+          type: "list",
+          name: "department_id",
+          choices: departmentList,
+          message: "Choose a department to see its employees",
+        },
+      ];
+
+      inquirer.prompt(questions).then((response) => {
+        let department_id, query;
+        if (response.department_id) {
+          query = `
+          SELECT e.first_name, e.last_name, department_name
+          FROM employee as e
+          JOIN role
+          on role.id = e.role_id
+          JOIN department
+          on role.department_id = department.id
+          where department_id = ?;
+          `;
+        } else {
+          //where employee has no department (e.g. when department deleted)
+          department_id = null;
+          query = `
+            SELECT e.first_name, e.last_name, department_name
+            FROM employee as e
+            JOIN role
+            on role.id = e.role_id
+            JOIN department
+            on role.department_id = department.id
+            where department_id = null;
+          `;
+        }
+        connection.query(query, [response.department_id], (err, res) => {
           if (err) throw err;
           console.table(res);
           promptChoice();
