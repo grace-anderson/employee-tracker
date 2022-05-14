@@ -358,53 +358,67 @@ const addEmployee = async () => {
   return promptChoice();
 };
 
-const updateEmployeeRole = () => {
-  // create list for user to select employee
-  employeeList = [];
-  findAllEmployees().then(([rows]) => {
-    // console.log(rows);
-    rows.forEach((employee) => {
-      let employeeObject = {
-        name: employee.first_name + " " + employee.last_name,
-        value: employee.id,
-      };
-      employeeList.push(employeeObject);
-    });
+// const updateEmployeeRole = () => {
+//   // create list for user to select employee
+//   employeeList = [];
+//   findAllEmployees().then(([rows]) => {
+//     // console.log(rows);
+//     rows.forEach((employee) => {
+//       let employeeObject = {
+//         name: employee.first_name + " " + employee.last_name,
+//         value: employee.id,
+//       };
+//       employeeList.push(employeeObject);
+//     });
 
-    inquirer.prompt([
-      {
-        type: "list",
-        name: "employee",
-        choices: employeeList,
-        message: "Select an employee to update their role",
-      },
-    ]);
-  })
-    .then((employee) => {
-      console.log(employee);
-    //create list for user to select role
-    employeeRoleList = [];
-    findAllRoles().then(([rows]) => {
-      // console.log(rows);
-      rows.forEach((role) => {
-        let roleObject = {
-          name: role.title,
-          value: role.id,
-        };
-        employeeRoleList.push(roleObject);
-      });
+//     inquirer
+//       .prompt([
+//         {
+//           type: "list",
+//           name: "employee",
+//           choices: employeeList,
+//           message: "Select an employee to update their role",
+//         },
+//       ])
+//       .then((employee) => {
+//         console.log(employee);
+//         //create list for user to select role
+//         employeeRoleList = [];
+//         findAllRoles().then(([rows]) => {
+//           // console.log(rows);
+//           rows.forEach((role) => {
+//             let roleObject = {
+//               name: role.title,
+//               value: role.id,
+//             };
+//             employeeRoleList.push(roleObject);
+//           });
 
-      inquirer.prompt([
-        {
-          type: "list",
-          name: "employeeRoleId",
-          choices: employeeRoleList,
-          message: "Select the employee's new role",
-        },
-      ]);
-    });
-  });
-};
+//           inquirer
+//             .prompt([
+//               {
+//                 type: "list",
+//                 name: "employeeRoleId",
+//                 choices: employeeRoleList,
+//                 message: "Select the employee's new role",
+//               },
+//             ])
+//             .then((response) => {
+//               console.log(response);
+//               connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ? = ?", {
+//                 role_id: response.role_id,
+//                 id: response.employee,
+//                 employee.id
+//               });
+
+//               console.log(`Employee role updated.`);
+              
+//             });
+//             promptChoice();
+//         });
+//       });
+//   });
+// };
 
 //findAllEmployees used by updateEmployeeRole
 const findAllEmployees = () => {
