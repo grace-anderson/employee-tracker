@@ -1,22 +1,16 @@
-const express = require("express");
-// Import and require mysql2, inquirer, console.table
+// Import and require mysql2, inquirer
+// Console.table not imported as now Javascript has built in functionality: console.table()
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
-// const cTable = require("console.table");
 const figlet = require("figlet");
-const res = require("express/lib/response");
-
-const PORT = process.env.PORT || 3001;
-const app = express();
+// const cTable = require("console.table");
 
 //require local modules
 const requiredQuestions = require("./src/requiredQuestions");
 const { validateNumber } = require("./src/validateNumber");
+const viewAllDepartments = require("./src/viewAllDepartments");
 
-// Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-
+//create employee tracker heading
 figlet.text(
   "Employee Tracker",
   {
@@ -37,7 +31,7 @@ figlet.text(
   }
 );
 
-// Db connection //////////////////////////////////////////////////////
+// db connection
 const connection = mysql.createConnection({
   host: "localhost",
   // MySQL username,
@@ -50,12 +44,12 @@ connection
   .promise()
   .query("SELECT 1")
   .then(() => {
+    //trigger questions prompt
     promptChoice();
   })
   .catch(console.log);
-// .then(() => connection.end());
 
-//prompt questions, link to question functions ////////////////////////
+//prompt questions
 function promptChoice() {
   inquirer
     .prompt([
@@ -142,9 +136,7 @@ function promptChoice() {
           break;
 
         case "Exit":
-          connection.end();
           process.exit();
-          break;
       }
     })
     .catch((error) => {
@@ -156,19 +148,19 @@ function promptChoice() {
     });
 }
 
-// View all departments /////////////////////////////////////////////////
-function viewAllDepartments() {
-  connection
-    .promise()
-    .query("SELECT * FROM department")
-    .then(([sql]) => {
-      console.log(`\n`);
-      console.table(sql);
-      promptChoice();
-    })
-    .catch(console.log);
-  // .then(() => connection.end());
-}
+// View all departments
+// function viewAllDepartments() {
+//   connection
+//     .promise()
+//     .query("SELECT * FROM department")
+//     .then(([sql]) => {
+//       console.log(`\n`);
+//       console.table(sql);
+//       console.log(`\n`);
+//       promptChoice();
+//     })
+//     .catch(console.log);
+// }
 
 // View all roles ///////////////////////////////////////////////////////
 function viewAllRoles() {
@@ -766,4 +758,9 @@ const deleteEmployee = () => {
       });
     });
   });
+};
+
+//export functions
+module.exports = {
+  promptChoice
 };
