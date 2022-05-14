@@ -37,7 +37,7 @@ figlet.text(
   }
 );
 
-// Db connection ////////////////////////////////////////////////////////
+// Db connection //////////////////////////////////////////////////////
 const connection = mysql.createConnection({
   host: "localhost",
   // MySQL username,
@@ -55,7 +55,7 @@ connection
   .catch(console.log);
 // .then(() => connection.end());
 
-//prompt questions, link to question functions //////////////////////////
+//prompt questions, link to question functions ////////////////////////
 function promptChoice() {
   inquirer
     .prompt([
@@ -121,7 +121,7 @@ function promptChoice() {
     });
 }
 
-// View all departments //////////////////////////////////////////////////
+// View all departments ///////////////////////////////////////////////
 function viewAllDepartments() {
   connection
     .promise()
@@ -221,7 +221,7 @@ const addDepartment = async () => {
   );
 };
 
-//insert role ///////////////////////////////////////////////////////////
+//insert role /////////////////////////////////////////////////////////
 const addRole = async () => {
   //create list for user to select department
   const departmentList = [];
@@ -343,7 +343,7 @@ const addEmployee = async () => {
       name: "manager",
       choices: managerList,
       message:
-        "Select the employee's manager or select none if employee has no manager",
+        "Select the employee's manager or select 'No manager'",
     },
   ]);
 
@@ -360,32 +360,89 @@ const addEmployee = async () => {
 };
 
 //update employee role /////////////////////////////////////
-// case "Update an employee role":
-//   updateEmployeeRole();
-//   break;
-const updateEmployeeRole = async () => {};
+const updateEmployeeRole = async () => {
+  // create list for user to select employee
+  employeeList = [];
+  connection.query(
+    "SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name",
+    (err, res) => {
+      if (err) throw err;
 
-/////////////
-app.put("/api/employee/:id", (req, res) => {
-  const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
-  const params = [req.params.role_id, req.body.id];
+      res.forEach((employee) => {
+        let employeeObject = {
+          name: employee.first_name + " " + employee.last_name,
+          value: employee.id
+        };
 
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-    } else if (!result.affectedRows) {
-      res.json({
-        message: "Employee not found",
-      });
-    } else {
-      res.json({
-        message: "success",
-        data: req.body,
-        changes: result.affectedRows,
+        employeeList.push(employeeObject);
       });
     }
+  );
+
+  //create list for user to select role
+  const employeeRoleList = [];
+  connection.query("SELECT id, title FROM role", (err, res) => {
+    if (err) throw err;
+
+    res.forEach((role) => {
+      let roleObject = {
+        name: role.title,
+        value: role.id,
+      };
+      employeeRoleList.push(roleObject);
+    });
   });
-});
+
+  const response = await inquirer.prompt([
+    {
+      type: "list",
+      name: "employee",
+      choices: employeeList,
+      message:
+        "Select an employee to update their role",
+    },
+    {
+      type: "list",
+      name: "employeeRoleId",
+      choices: employeeRoleList,
+      message:
+        "Select the employee's new role",
+    },
+  ]);
+
+  await connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ?? = ?", {
+    role_id: response.employeeRoleId,
+    id: response.employee,
+    id
+  });
+  console.log(
+    `${response.first_name} ${response.last_name}'s role updated.`
+  );
+  return promptChoice();
+
+};
+
+/////////////
+// app.put("/api/employee/:id", (req, res) => {
+//   const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
+//   const params = [req.params.role_id, req.body.id];
+
+//   db.query(sql, params, (err, result) => {
+//     if (err) {
+//       res.status(400).json({ error: err.message });
+//     } else if (!result.affectedRows) {
+//       res.json({
+//         message: "Employee not found",
+//       });
+//     } else {
+//       res.json({
+//         message: "success",
+//         data: req.body,
+//         changes: result.affectedRows,
+//       });
+//     }
+//   });
+// });
 
 //////////////////////////////////////////////////////////////
 
