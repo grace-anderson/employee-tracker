@@ -159,16 +159,15 @@ function viewAllRoles() {
 
 // View all employees ///////////////////////////////////////////////////
 function viewAllEmployees() {
-
-  const original = ` SELECT e.id as 'employee_id', e.first_name, e.last_name, r.title as 'job_title', d.department_name as department, r.salary, mgr.first_name as manager_first_name, mgr.last_name as manager_last_name
-  FROM employee as e
-  JOIN role as r
-  ON e.id = r.id
-  JOIN department d
-  ON r.department_id = d.id
-  LEFT JOIN employee mgr
-  on mgr.id = e.manager_id
-  order by e.id;`
+  // const original = ` SELECT e.id as 'employee_id', e.first_name, e.last_name, r.title as 'job_title', d.department_name as department, r.salary, mgr.first_name as manager_first_name, mgr.last_name as manager_last_name
+  // FROM employee as e
+  // JOIN role as r
+  // ON e.id = r.id
+  // JOIN department d
+  // ON r.department_id = d.id
+  // LEFT JOIN employee mgr
+  // on mgr.id = e.manager_id
+  // order by e.id;`
 
   const query = `
   SELECT 
@@ -178,15 +177,14 @@ function viewAllEmployees() {
   role.title as 'Role',
   department_name as 'Department',
   concat(employee.first_name, " ", employee.last_name) as 'Manager'
-
- FROM employee as e
-JOIN \`role\`
-on role.id = e.role_id
-Join \`department\`
-on role.department_id = department.id
-left join employee 
-on  employee.id  = e.manager_id;
-`
+  FROM employee as e
+  JOIN \`role\`
+  on role.id = e.role_id
+  JOIN \`department\`
+  on role.department_id = department.id
+  LEFT JOIN employee 
+  on employee.id  = e.manager_id;
+`;
   connection
     .promise()
     .query(query)
@@ -308,17 +306,17 @@ const addEmployee = async () => {
           name: manager.first_name + " " + manager.last_name,
           value: manager.id,
         };
-  
-        managerList.push(managerObject);
 
+        managerList.push(managerObject);
       });
       let nullObject = {
         name: "No manager",
-        value: null
+        value: null,
       };
 
-      managerList.push(nullObject)
-    });
+      managerList.push(nullObject);
+    }
+  );
 
   const response = await inquirer.prompt([
     {
@@ -349,17 +347,15 @@ const addEmployee = async () => {
     },
   ]);
 
-  await connection.promise().query(
-    "INSERT INTO employee SET ?",
-    {
-      first_name: response.first_name,
-      last_name: response.last_name,
-      role_id: response.role,
-      manager_id: response.manager,
-    });
+  await connection.promise().query("INSERT INTO employee SET ?", {
+    first_name: response.first_name,
+    last_name: response.last_name,
+    role_id: response.role,
+    manager_id: response.manager,
+  });
   console.log(
-      `${response.first_name} ${response.last_name} added to employees.`
-    );
+    `${response.first_name} ${response.last_name} added to employees.`
+  );
   return promptChoice();
 };
 
@@ -367,9 +363,7 @@ const addEmployee = async () => {
 // case "Update an employee role":
 //   updateEmployeeRole();
 //   break;
-const updateEmployeeRole = async () => {
-
-};
+const updateEmployeeRole = async () => {};
 
 /////////////
 app.put("/api/employee/:id", (req, res) => {
