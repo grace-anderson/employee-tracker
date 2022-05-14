@@ -106,6 +106,10 @@ function promptChoice() {
           updateEmployeeRole();
           break;
 
+        case "Delete a department":
+          deleteDepartment();
+          break;
+
         case "Exit":
           connection.end();
           process.exit();
@@ -121,7 +125,7 @@ function promptChoice() {
     });
 }
 
-// View all departments ///////////////////////////////////////////////
+// View all departments /////////////////////////////////////////////////
 function viewAllDepartments() {
   connection
     .promise()
@@ -135,7 +139,7 @@ function viewAllDepartments() {
   // .then(() => connection.end());
 }
 
-// View all roles /////////////////////////////////////////////////
+// View all roles ///////////////////////////////////////////////////////
 function viewAllRoles() {
   connection
     .promise()
@@ -159,16 +163,6 @@ function viewAllRoles() {
 
 // View all employees ///////////////////////////////////////////////////
 function viewAllEmployees() {
-  // const original = ` SELECT e.id as 'employee_id', e.first_name, e.last_name, r.title as 'job_title', d.department_name as department, r.salary, mgr.first_name as manager_first_name, mgr.last_name as manager_last_name
-  // FROM employee as e
-  // JOIN role as r
-  // ON e.id = r.id
-  // JOIN department d
-  // ON r.department_id = d.id
-  // LEFT JOIN employee mgr
-  // on mgr.id = e.manager_id
-  // order by e.id;`
-
   const query = `
   SELECT 
 	e.id as 'id',
@@ -197,7 +191,7 @@ function viewAllEmployees() {
   // .then(() => connection.end());
 }
 
-// insert department ///////////////////////////////////////////////////
+// insert department ////////////////////////////////////////////////////
 const addDepartment = async () => {
   const response = await inquirer.prompt([
     {
@@ -221,7 +215,7 @@ const addDepartment = async () => {
   );
 };
 
-//insert role /////////////////////////////////////////////////////////
+//insert role ///////////////////////////////////////////////////////////
 const addRole = async () => {
   //create list for user to select department
   const departmentList = [];
@@ -359,44 +353,44 @@ const addEmployee = async () => {
 };
 
 const updateEmployeeRole = () => {
-  connection.query("SELECT * FROM employee ORDER BY first_name", (err, employees) => {
-    if (err) throw err;
-    const employeeList = [];
-    employees.forEach(({ first_name, last_name, id }) => {
-      employeeList.push({
-        name: first_name + " " + last_name,
-        value: id,
-      });
-    });
-
-    connection.query("SELECT * FROM role", (err, roles) => {
+  connection.query(
+    "SELECT * FROM employee ORDER BY first_name",
+    (err, employees) => {
       if (err) throw err;
-      const roleList = [];
-      roles.forEach(({ title, id }) => {
-        roleList.push({
-          name: title,
+      const employeeList = [];
+      employees.forEach(({ first_name, last_name, id }) => {
+        employeeList.push({
+          name: first_name + " " + last_name,
           value: id,
         });
       });
 
-      let questions = [
-        {
-          type: "list",
-          name: "id",
-          choices: employeeList,
-          message: "Select an employee to update their role",
-        },
-        {
-          type: "list",
-          name: "role_id",
-          choices: roleList,
-          message: "Select the employee's new role",
-        },
-      ];
+      connection.query("SELECT * FROM role", (err, roles) => {
+        if (err) throw err;
+        const roleList = [];
+        roles.forEach(({ title, id }) => {
+          roleList.push({
+            name: title,
+            value: id,
+          });
+        });
 
-      inquirer
-        .prompt(questions)
-        .then((response) => {
+        let questions = [
+          {
+            type: "list",
+            name: "id",
+            choices: employeeList,
+            message: "Select an employee to update their role",
+          },
+          {
+            type: "list",
+            name: "role_id",
+            choices: roleList,
+            message: "Select the employee's new role",
+          },
+        ];
+
+        inquirer.prompt(questions).then((response) => {
           const query = `UPDATE EMPLOYEE SET ? WHERE ?? = ?;`;
           connection.query(
             query,
@@ -408,7 +402,41 @@ const updateEmployeeRole = () => {
               promptChoice();
             }
           );
-        })
+        });
+      });
+    }
+  );
+};
+
+const deleteDepartment = () => {
+  const departments = [];
+  connection.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
+
+    res.forEach((department) => {
+      let departmentObject = {
+        name: department.name,
+        value: department.id,
+      };
+      departments.push(departmentObject);
+    });
+
+    let questions = [
+      {
+        type: "list",
+        name: "id",
+        choices: departments,
+        message: "Choose the department to delete",
+      },
+    ];
+
+    inquirer.prompt(questions).then((response) => {
+      const query = `DELETE FROM department WHERE id = ?`;
+      connection.query(query, [response.id], (err, res) => {
+        if (err) throw err;
+        console.log(`\nDepartment deleted\n`);
+        promptChoice();
+      });
     });
   });
 };
