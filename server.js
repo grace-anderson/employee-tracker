@@ -358,68 +358,7 @@ const addEmployee = async () => {
   return promptChoice();
 };
 
-//update employee role /////////////////////////////////////
-
-// const updateEmployeeRole = async () => {
-//   // create list for user to select employee
-//   const employeeList = [];
-//   connection.query(
-//     "SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name",
-//     (err, res) => {
-//       if (err) throw err;
-
-//       res.forEach((employee) => {
-//         let employeeObject = {
-//           name: employee.first_name + " " + employee.last_name,
-//           value: employee.id,
-//         };
-
-//         employeeList.push(employeeObject);
-//       });
-//       // console.log('employee list', employeeList);
-//     }
-//   );
-
-//   //create list for user to select role
-//   const employeeRoleList = [];
-//   connection.query("SELECT id, title FROM role", (err, res) => {
-//     if (err) throw err;
-
-//     res.forEach((role) => {
-//       let roleObject = {
-//         name: role.title,
-//         value: role.id,
-//       };
-//       employeeRoleList.push(roleObject);
-//     });
-//   });
-
-//   const response = await inquirer.prompt([
-//     {
-//       type: "list",
-//       name: "employee",
-//       choices: employeeList,
-//       message: "Select an employee to update their role",
-//     },
-//     {
-//       type: "list",
-//       name: "employeeRoleId",
-//       choices: employeeRoleList,
-//       message: "Select the employee's new role",
-//     },
-//   ]);
-
-//   await connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ?? = ?", {
-//     role_id: response.employeeRoleId,
-//     id: response.employee,
-//     id,
-//   });
-//   console.log(`Employee's role updated.`);
-//   return promptChoice();
-// };
-/////////////////////////////////////////////////////////////////////////
-
-const updateEmployeeRole = async () => {
+const updateEmployeeRole = () => {
   // create list for user to select employee
   employeeList = [];
   findAllEmployees().then(([rows]) => {
@@ -440,7 +379,9 @@ const updateEmployeeRole = async () => {
         message: "Select an employee to update their role",
       },
     ]);
-
+  })
+    .then((employee) => {
+      console.log(employee);
     //create list for user to select role
     employeeRoleList = [];
     findAllRoles().then(([rows]) => {
@@ -463,16 +404,6 @@ const updateEmployeeRole = async () => {
       ]);
     });
   });
-
-  // await connection.promise().query("UPDATE EMPLOYEE SET ? WHERE ?? = ?", {
-  //   role_id: response.employeeRoleId,
-  //   id: response.employee,
-  //   id
-  // });
-  // console.log(
-  //   `${response.first_name} ${response.last_name}'s role updated.`
-  // );
-  // return promptChoice();
 };
 
 //findAllEmployees used by updateEmployeeRole
