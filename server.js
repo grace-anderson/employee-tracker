@@ -1,5 +1,5 @@
 // Import and require mysql2, inquirer
-// Console.table not imported as now Javascript has built in functionality: console.table()
+// Console.table not imported as Javascript has built in functionality: console.table()
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
 const figlet = require("figlet");
@@ -8,7 +8,6 @@ const figlet = require("figlet");
 //require local modules
 const requiredQuestions = require("./src/requiredQuestions");
 const { validateNumber } = require("./src/validateNumber");
-const viewAllDepartments = require("./src/viewAllDepartments");
 
 //create employee tracker heading
 figlet.text(
@@ -49,7 +48,7 @@ connection
   })
   .catch(console.log);
 
-//prompt questions
+// prompt questions
 function promptChoice() {
   inquirer
     .prompt([
@@ -149,58 +148,65 @@ function promptChoice() {
 }
 
 // View all departments
-// function viewAllDepartments() {
-//   connection
-//     .promise()
-//     .query("SELECT * FROM department")
-//     .then(([sql]) => {
-//       console.log(`\n`);
-//       console.table(sql);
-//       console.log(`\n`);
-//       promptChoice();
-//     })
-//     .catch(console.log);
-// }
+function viewAllDepartments() {
+  connection
+    .promise()
+    .query(
+      `
+      SELECT id, department_name AS 'Department'
+      FROM department
+      ORDER BY department_name
+      `
+    )
+    .then(([sql]) => {
+      console.log(`\n`);
+      console.table(sql);
+      console.log(`\n`);
+      promptChoice();
+    })
+    .catch(console.log);
+}
 
-// View all roles ///////////////////////////////////////////////////////
+// View all roles
 function viewAllRoles() {
   connection
     .promise()
     .query(
       `
-    SELECT r.title as 'role_title', r.id as role_id, d.department_name, r.salary
+    SELECT r.id, r.title AS 'Role',  d.department_name AS 'Department', r.salary AS 'Salary'
     FROM role r
     LEFT JOIN department d
     ON r.department_id = d.id
-    ORDER BY r.id;
+    ORDER BY r.title;
     `
     )
     .then(([sql]) => {
-      console.log(` `);
+      console.log(`\n`);
       console.table(sql);
+      console.log(`\n`);
       promptChoice();
     })
     .catch(console.log);
-  // .then(() => connection.end());
 }
 
-// View all employees ///////////////////////////////////////////////////
+// View all employees
 function viewAllEmployees() {
   const query = `
   SELECT 
-	e.id as 'id',
-  e.first_name as 'First Name',
-  e.last_name as 'Last Name',
-  role.title as 'Role',
-  department_name as 'Department',
-  concat(employee.first_name, " ", employee.last_name) as 'Manager'
-  FROM employee as e
-  JOIN \`role\`
-  on role.id = e.role_id
-  JOIN \`department\`
-  on role.department_id = department.id
-  LEFT JOIN employee 
-  on employee.id  = e.manager_id;
+	e.id,
+  e.first_name AS 'First Name',
+  e.last_name AS 'Last Name',
+  r.title AS 'Role',
+  department_name AS 'Department',
+  concat(mgr.first_name, " ", mgr.last_name) as 'Manager'
+  FROM employee e
+  JOIN role r
+  ON r.id = e.role_id
+  JOIN department d
+  ON r.department_id = d.id
+  LEFT JOIN employee mgr
+  ON mgr.id  = e.manager_id
+  order by e.first_name
 `;
   connection
     .promise()
@@ -208,23 +214,23 @@ function viewAllEmployees() {
     .then(([sql]) => {
       console.log(`\n`);
       console.table(sql);
+      console.log(`\n`);
       promptChoice();
     })
     .catch(console.log);
-  // .then(() => connection.end());
 }
 
-// view employees by manager //////////////////////////////////////////
+// View employees by manager
 const viewEmployeesbyManager = () => {
   connection.query(
     `
     SELECT m.id, m.first_name, m.last_name
     FROM employee e
     LEFT JOIN employee m
-      on m.id  = e.manager_id
-      WHERE m.id IS NOT NULL
+    ON m.id  = e.manager_id
+    WHERE m.id IS NOT NULL
     GROUP by m.id
-    ;
+    ORDER BY m.first_name;
     `,
     (err, managers) => {
       if (err) throw err;
@@ -255,26 +261,34 @@ const viewEmployeesbyManager = () => {
         let manager_id, query;
         if (response.manager_id) {
           query = `
-          SELECT e.first_name, e.last_name, 
-          CONCAT(m.first_name, " ", m.last_name) AS manager
-          FROM employee AS e
-          LEFT JOIN employee AS m ON e.manager_id = m.id
-          WHERE e.manager_id = ?;
+          SELECT 
+          e.first_name AS 'First Name',
+          e.last_name AS 'Last Name',
+          CONCAT(m.first_name, " ", m.last_name) AS Manager
+          FROM employee e
+          LEFT JOIN employee m ON e.manager_id = m.id
+          WHERE e.manager_id = ?
+          ORDER BY e.first_name;
           `;
         } else {
-          //where employee has no manager (id, name is null)
+          //handle where employee has no manager (id and name is null)
           manager_id = null;
           query = `
-          SELECT e.first_name, e.last_name, 
-          CONCAT(m.first_name, " ", m.last_name) AS manager
-          FROM employee AS e
-          LEFT JOIN employee AS m ON e.manager_id = m.id
-          WHERE e.manager_id is null;
+          SELECT 
+          e.first_name AS 'First Name',
+          e.last_name AS 'Last Name',
+          CONCAT(m.first_name, " ", m.last_name) AS Manager
+          FROM employee e
+          LEFT JOIN employee m ON e.manager_id = m.id
+          WHERE e.manager_id = IS NULL
+          ORDER BY e.first_name;
           `;
         }
         connection.query(query, [response.manager_id], (err, res) => {
           if (err) throw err;
+          console.log(`\n`);
           console.table(res);
+          console.log(`\n`);
           promptChoice();
         });
       });
@@ -282,12 +296,13 @@ const viewEmployeesbyManager = () => {
   );
 };
 
-// view employees by department /////////////////////////////////
+// view employees by department
 const viewEmployeesByDepartment = () => {
   connection.query(
     `
-    SELECT * FROM department 
-    where id IS NOT NULL;
+    SELECT *
+    FROM department
+    WHERE id IS NOT NULL;
     `,
     (err, departments) => {
       if (err) throw err;
@@ -318,30 +333,34 @@ const viewEmployeesByDepartment = () => {
         let department_id, query;
         if (response.department_id) {
           query = `
-          SELECT e.first_name, e.last_name, department_name
+          SELECT e.first_name AS 'First Name', e.last_name AS 'Last Name', department_name AS 'Department'
           FROM employee as e
-          JOIN role
-          on role.id = e.role_id
-          JOIN department
-          on role.department_id = department.id
-          where department_id = ?;
+          JOIN role r
+          on r.id = e.role_id
+          JOIN department d
+          on r.department_id = d.id
+          where r.department_id = ?
+          ORDER BY e.first_name;
           `;
         } else {
           //where employee has no department (e.g. when department deleted)
           department_id = null;
           query = `
-            SELECT e.first_name, e.last_name, department_name
-            FROM employee as e
-            JOIN role
-            on role.id = e.role_id
-            JOIN department
-            on role.department_id = department.id
-            where department_id = null;
+          SELECT e.first_name AS 'First Name', e.last_name AS 'Last Name', department_name AS 'Department'
+          FROM employee as e
+          JOIN role r
+          on r.id = e.role_id
+          JOIN department d
+          on r.department_id = d.id
+          where r.department_id IS NULL
+          ORDER BY e.first_name;
           `;
         }
         connection.query(query, [response.department_id], (err, res) => {
           if (err) throw err;
+          console.log(`\n`);
           console.table(res);
+          console.log(`\n`);
           promptChoice();
         });
       });
@@ -349,9 +368,9 @@ const viewEmployeesByDepartment = () => {
   );
 };
 
-// view total utilised budget ///////////////////////////////////
+// view total utilised budget
 const viewTotalUtilisedBudget = () => {
-  connection.query("SELECT * FROM department", (err, res) => {
+  connection.query(`SELECT * FROM department`, (err, res) => {
     if (err) throw err;
 
     const departmentList = [];
@@ -367,31 +386,33 @@ const viewTotalUtilisedBudget = () => {
         type: "list",
         name: "id",
         choices: departmentList,
-        message: "Select department to see it's total utlised budget",
+        message: "Select department to see its total utlised budget",
       },
     ];
 
     inquirer.prompt(questions).then((response) => {
       const query = `
-        SELECT department_name,
-        SUM(salary) as total_utilised_budget
+        SELECT department_name AS 'Department',
+        SUM(salary) as 'Total Utilised Budget'
         FROM employee as e
-        JOIN role
-        ON role.id = e.role_id
-        JOIN department
-        ON role.department_id = department.id
+        JOIN role r
+        ON r.id = e.role_id
+        JOIN department d
+        ON r.department_id = d.id
         WHERE department_id = ?
       `;
       connection.query(query, [response.id], (err, res) => {
         if (err) throw err;
+        console.log(`\n`);
         console.table(res);
+        console.log(`\n`);
         promptChoice();
       });
     });
   });
 };
 
-// insert department ////////////////////////////////////////////
+// add department
 const addDepartment = async () => {
   const response = await inquirer.prompt([
     {
@@ -409,17 +430,16 @@ const addDepartment = async () => {
     },
     (err) => {
       if (err) throw err;
-      console.log(`${response.addDepartment} department added.`);
+      console.log(`\n${response.addDepartment} department added.\n`);
       promptChoice();
     }
   );
 };
 
-//insert role ///////////////////////////////////////////////////
+//add role
 const addRole = async () => {
-  //create list for user to select department
   const departmentList = [];
-  connection.query("SELECT * FROM department", (err, res) => {
+  connection.query(`SELECT * FROM department`, (err, res) => {
     if (err) throw err;
 
     res.forEach((department) => {
@@ -433,7 +453,6 @@ const addRole = async () => {
   });
 
   const response = await inquirer.prompt([
-    // prompt user input role title, salary, department
     {
       name: "title",
       type: "input",
@@ -465,17 +484,16 @@ const addRole = async () => {
     },
     (err) => {
       if (err) throw err;
-      console.log(`${response.title} role added.`);
+      console.log(`\n${response.title} role added.\n`);
       promptChoice();
     }
   );
 };
 
-//add employee /////////////////////////////////////////////////////////
+//add employee
 const addEmployee = async () => {
-  //create list for user to select role
   const roleList = [];
-  connection.query("SELECT id, title FROM role", (err, res) => {
+  connection.query(`SELECT id, title FROM role`, (err, res) => {
     if (err) throw err;
 
     res.forEach((role) => {
@@ -488,10 +506,11 @@ const addEmployee = async () => {
     });
   });
 
-  // create list for user to select employee's manager
   const managerList = [];
   connection.query(
-    "SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name",
+    `
+    SELECT id, first_name, last_name FROM EMPLOYEE ORDER BY last_name
+    `,
     (err, res) => {
       if (err) throw err;
 
@@ -552,10 +571,10 @@ const addEmployee = async () => {
   return promptChoice();
 };
 
-//update employee role /////////////////////////////////////////////////
+//update employee role
 const updateEmployeeRole = () => {
   connection.query(
-    "SELECT * FROM employee ORDER BY first_name",
+    `SELECT * FROM employee ORDER BY first_name`,
     (err, employees) => {
       if (err) throw err;
       const employeeList = [];
@@ -592,13 +611,12 @@ const updateEmployeeRole = () => {
         ];
 
         inquirer.prompt(questions).then((response) => {
-          const query = `UPDATE EMPLOYEE SET ? WHERE ?? = ?;`;
+          const query = `UPDATE employee SET ? WHERE ?? = ?;`;
           connection.query(
             query,
             [{ role_id: response.role_id }, "id", response.id],
             (err, res) => {
               if (err) throw err;
-
               console.log("\nEmployee's role updated\n");
               promptChoice();
             }
@@ -612,7 +630,7 @@ const updateEmployeeRole = () => {
 //update employee manager
 const updateEmployeeManager = () => {
   connection.query(
-    "SELECT * FROM employee ORDER BY first_name",
+    `SELECT * FROM employee ORDER BY first_name`,
     (err, employees) => {
       if (err) throw err;
       const employeeList = [];
@@ -645,8 +663,7 @@ const updateEmployeeManager = () => {
           [{ manager_id: response.manager_id }, "id", response.id],
           (err, res) => {
             if (err) throw err;
-
-            console.log("\nEmployee's manager updated\n");
+            console.log(`\nEmployee's manager updated\n`);
             promptChoice();
           }
         );
@@ -655,11 +672,11 @@ const updateEmployeeManager = () => {
   );
 };
 
-//delete department ////////////////////////////////////////////////////
+//delete department
 const deleteDepartment = () => {
   const departments = [];
   connection.query(
-    "SELECT * FROM department ORDER BY department_name",
+    `SELECT * FROM department ORDER BY department_name`,
     (err, res) => {
       if (err) throw err;
 
@@ -676,7 +693,7 @@ const deleteDepartment = () => {
           type: "list",
           name: "id",
           choices: departments,
-          message: "Choose the department to delete",
+          message: "Choose a department to delete",
         },
       ];
 
@@ -758,9 +775,4 @@ const deleteEmployee = () => {
       });
     });
   });
-};
-
-//export functions
-module.exports = {
-  promptChoice
 };
