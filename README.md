@@ -7,12 +7,12 @@
 ## Table of Contents
   - [Project Description](#project-description)
   - [Technologies](#technologies)
-  - [Installation and Usage](#installation)
+  - [Installation and Usage](#installation-and-usage)
   - [License](#license)
   - [Contribution Guidelines](#contribution-guidelines)
   - [Test Instructions](#test-instructions)
   - [Questions](#questions)
-  - [Screenshots](#screenshots)
+
 
 ## Project Description 
 The Employee Tracker is a content management system (CMS) that enables non-developers to easily view and interract with information stored in the employees_db database. User scenarios could include a small business or start up which needs manage their employees information. 
@@ -26,12 +26,13 @@ Go to [GitHub](https://github.com/grace-anderson/employee-tracker) for the Emplo
 * [node](https://nodejs.org/en/)
 * [npm inquirer package](https://www.npmjs.com/package/inquirer?activeTab=readme)
 * [MySQL](https://www.mysql.com/)
-* [figlet](https://www.npmjs.com/package/figlet)
+* [npm MySQL2 package](https://www.npmjs.com/package/mysql2)
+* [npm figlet package](https://www.npmjs.com/package/figlet)
 
 ## Installation and Usage
   1. Get the code
       * You need a [GitHub](https://github.com/) account to access the code
-      * Install the Employee Tracker by forking the [Employee Tracker GitHub repository](https://github.com/grace-anderson/employee-tracker) and then cloning the fork to locally
+      * Install the Employee Tracker by forking the [Employee Tracker GitHub repository](https://github.com/grace-anderson/employee-tracker) and then cloning the fork locally
       * More information
         * [How to fork a repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
         * [GitHub getting started](https://docs.github.com/)
@@ -43,11 +44,14 @@ Go to [GitHub](https://github.com/grace-anderson/employee-tracker) for the Emplo
         * [How to install NodeJS](https://coding-boot-camp.github.io/full-stack/nodejs/how-to-install-nodejs)
   3. Set up the database 
      * [Install and create a user account for MySQL](https://coding-boot-camp.github.io/full-stack/nodejs/how-to-install-nodejs)
+     * Update the user credentials in the server.js file to your MySQL credentials
+       * **Note that configuration is unsecure. Before using the Employee Tracker, consult with your ICT provider to update the Employee Tracker so that it complies with your organisation's security policies.**
      * In your command line tool type `mysql -u root -p` . 
      * Then, to create the database schema, type `source schema.sql`
      * If you wish, you can populate or seed the database with test data `source seed.sql`
-  4. Then start the app on the command line: `node server.js`
-  5. **TO DO** Watch this [video](TO DO) for more detailed instructions. 
+     * Then tell the Employee Tracker to use the employees_db database `use employees_db`
+  4. Then start the Employee Tracker by typing into the command line `node server.js`
+  5. Watch this [video](https://drive.google.com/file/d/1bkk5zaaNlpFWNYM8t2c8oHwZZ_kqIJN3/view?usp=sharing) for detailed instructions. 
 
 ## License
 License covering this application: [MIT](https://opensource.org/licenses/MIT)
@@ -75,21 +79,21 @@ SO THAT I can organize and plan my business
 
 #### Acceptance Criteria
 GIVEN a command-line application that accepts user input
-WHEN I start the application
+* WHEN I start the application
 THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
-WHEN I choose to view all departments
+* WHEN I choose to view all departments
 THEN I am presented with a formatted table showing department names and department ids
-WHEN I choose to view all roles
+* WHEN I choose to view all roles
 THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
-WHEN I choose to view all employees
+* WHEN I choose to view all employees
 THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
-WHEN I choose to add a department
+* WHEN I choose to add a department
 THEN I am prompted to enter the name of the department and that department is added to the database
-WHEN I choose to add a role
+* WHEN I choose to add a role
 THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
-WHEN I choose to add an employee
+* WHEN I choose to add an employee
 THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-WHEN I choose to update an employee role
+* WHEN I choose to update an employee role
 THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
 
 ## Questions 
