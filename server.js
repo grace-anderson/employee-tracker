@@ -463,7 +463,6 @@ const addRole = async () => {
       name: "salary",
       type: "input",
       message: `What is the role's salary?`,
-      validate: requiredQuestions("Department name is required"),
       validate: validateNumber,
     },
     {
